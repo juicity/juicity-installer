@@ -137,8 +137,14 @@ check_arch_and_os() {
 check_version() {
     if [ -z "$JUICITY_VERSION" ]; then
         JUICITY_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity/releases/latest | grep 'tag_name' | cut -d\" -f4)
-        LOCAL_VERSION="$(/usr/local/bin/juicity-server -v | awk '{print $3}')" || LOCAL_VERSION=0
-        [ "$JUICITY_VERSION" = "$LOCAL_VERSION" ] && echo "$GREEN""Latest version $JUICITY_VERSION already installed.""$RESET" && exit 0 || echo "$GREEN""Upgrading juicity from $LOCAL_VERSION to $JUICITY_VERSION...""$RESET"
+        [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server -v | awk '{print $3}')" || LOCAL_VERSION=0
+        if [ "$JUICITY_VERSION" = "$LOCAL_VERSION" ] && [ "$LOCAL_VERSION" != 0 ]; then
+            echo "$GREEN""Latest version $JUICITY_VERSION already installed.""$RESET" && exit 0 
+        elif [ "$LOCAL_VERSION" != 0 ]; then
+            echo "$GREEN""Upgrading juicity from $LOCAL_VERSION to $JUICITY_VERSION...""$RESET"
+        else
+            echo "$GREEN""Installing juicity $JUICITY_VERSION...""$RESET"
+        fi
     else
         echo "${YELLOW}warning: You are installing juicity version $JUICITY_VERSION${RESET}"
         LOCAL_VERSION=0
@@ -156,6 +162,7 @@ download_juicity() {
     JUICITY_DOWNLOAD_URL="https://github.com/juicity/juicity/releases/download/$JUICITY_VERSION/juicity-$SYSTEM-$ARCH.zip"
     JUICITY_HASH_URL=$JUICITY_DOWNLOAD_URL.dgst
     JUICITY_DOWNLOAD_TMP_FILE="/tmp/juicity-$SYSTEM-$ARCH.zip"
+    echo "${GREEN}Downloading juicity from $JUICITY_DOWNLOAD_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_DOWNLOAD_TMP_FILE" "$JUICITY_DOWNLOAD_URL"; then
         echo "${RED}error: Download juicity failed!${RESET}"
         exit 1
@@ -173,32 +180,36 @@ download_juicity() {
 }
 
 download_systemd_service() (
-    JUICITY_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity/master/systemd/juicity-server.service"
+    JUICITY_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity-installer/master/systemd/juicity-server.service"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server.service"
+    echo "${GREEN}Downloading juicity server service file from $JUICITY_SERVICE_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
         echo "${RED}error: Download juicity service file failed!${RESET}"
         exit 1
     fi
-    JUICITY_CLIENT_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity/master/systemd/juicity-client.service"
+    JUICITY_CLIENT_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity-installer/master/systemd/juicity-client.service"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client.service"
+    echo "${GREEN}Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
         echo "${RED}error: Download juicity client service file failed!${RESET}"
         exit 1
     fi
-    mv juicity-server.service /etc/systemd/system/juicity-server.service
-    mv juicity-client.service /etc/systemd/system/juicity-client.service
+    mv /tmp/juicity-server.service /etc/systemd/system/juicity-server.service
+    mv /tmp/juicity-client.service /etc/systemd/system/juicity-client.service
     systemctl daemon-reload
 )
 
 download_openrc_service() (
     JUICITY_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity/master/openrc/juicity-server"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server"
+    echo "${GREEN}Downloading juicity server service file from $JUICITY_SERVICE_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
         echo "${RED}error: Download juicity service file failed!${RESET}"
         exit 1
     fi
     JUICITY_CLIENT_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity/master/openrc/juicity-client"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client"
+    echo "${GREEN}Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
         echo "${RED}error: Download juicity client service file failed!${RESET}"
         exit 1
