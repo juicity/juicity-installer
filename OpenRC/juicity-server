@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+
+name=$RC_SVCNAME
+description="juicity-server Service"
+supervisor="supervise-daemon"
+command="/usr/local/bin/juicity-server"
+command_args="run -c /usr/local/etc/juicity/server.json"
+command_user="root"
+command_background="yes"
+
+depend() {
+	after net dns 
+}

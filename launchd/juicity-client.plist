@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>juicity-client</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>/usr/local/bin/juicity-client</string>
+            <string>run</string>
+            <string>-c</string>
+            <string>/usr/local/etc/juicity/client.json</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>StandardErrorPath</key>
+        <string>/tmp/juicity-client.err</string>
+        <key>StandardOutPath</key>
+        <string>/tmp/juicity-client.out</string>
+    </dict>
+</plist>

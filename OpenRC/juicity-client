@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+
+name=$RC_SVCNAME
+description="juicity-client Service"
+supervisor="supervise-daemon"
+command="/usr/local/bin/juicity-client"
+command_args="run -c /usr/local/etc/juicity/client.json"
+command_user="nobody"
+command_background="yes"
+
+depend() {
+	after net dns 
+}
