@@ -179,7 +179,6 @@ download_juicity() {
         echo "${RED}error: Can not find command sha256sum or shasum, sha256 cannot be calculated!${RESET}"
         exit 1
     fi
-    local_sha256="$(sha256sum "$JUICITY_DOWNLOAD_TMP_FILE" | cut -d' ' -f1)"
     remote_sha256="$(cat "$JUICITY_DOWNLOAD_TMP_FILE.dgst" | grep sha256 | awk '{print $1}')"
     if [ "$local_sha256" != "$remote_sha256" ]; then
         echo "${RED}error: Check juicity hash failed!${RESET}"
