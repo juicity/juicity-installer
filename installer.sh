@@ -238,21 +238,25 @@ download_service() {
 }
 
 stop_juicity() {
-    if [ "$(systemctl is-active juicity-server)" = 'active' ]; then
-        systemctl stop juicity-server
-        juicity_server_stopped=1
+    if command -v systemctl > /dev/null 2>&1; then
+        if [ "$(systemctl is-active juicity-server)" = 'active' ]; then
+            systemctl stop juicity-server
+            juicity_server_stopped=1
+        fi
+        if [ "$(systemctl is-active juicity-client)" = 'active' ]; then
+            systemctl stop juicity-client
+            juicity_client_stopped=1
+        fi
     fi
-    if [ "$(systemctl is-active juicity-client)" = 'active' ]; then
-        systemctl stop juicity-client
-        juicity_client_stopped=1
-    fi
-    if [ -f /sbin/openrc-run ] && [ -f /run/juicity-server.pid ]; then
-        rc-service juicity-server stop
-        juicity_server_stopped=1
-    fi
-    if [ -f /sbin/openrc-run ] && [ -f /run/juicity-client.pid ]; then
-        rc-service juicity-client stop
-        juicity_client_stopped=1
+    if command -v rc-service > /dev/null 2>&1; then
+        if [ -f /sbin/openrc-run ] && [ -f /run/juicity-server.pid ]; then
+            rc-service juicity-server stop
+            juicity_server_stopped=1
+        fi
+        if [ -f /sbin/openrc-run ] && [ -f /run/juicity-client.pid ]; then
+            rc-service juicity-client stop
+            juicity_client_stopped=1
+        fi
     fi
 }
 
@@ -264,6 +268,10 @@ install_juicity() {
     mv "$tmp_dir/juicity-client" /usr/local/bin/juicity-client
     chmod +x /usr/local/bin/juicity-client
     rm -rf "$tmp_dir"
+    if [ "$(uname)" = "Darwin" ]; then
+        xattr -rd com.apple.quarantine /usr/local/bin/juicity-server
+        xattr -rd com.apple.quarantine /usr/local/bin/juicity-client
+    fi
 }
 
 start_juicity() {
