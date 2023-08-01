@@ -26,9 +26,11 @@ fi
 
 ## Check Command
 if [ "$(uname)" = Linux ]; then
-    virt_what="virt-what"
+    tools="virt-what curl unzip"
+else
+    tools="curl unzip"
 fi
-for tool in curl unzip "$virt_what"; do
+for tool in $tools; do
     if ! command -v "$tool"> /dev/null 2>&1; then
         tool_need="$tool"" ""$tool_need"
     fi
