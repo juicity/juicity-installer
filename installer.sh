@@ -301,10 +301,10 @@ start_juicity() {
 notice_config_path() {
     echo "${GREEN}-------------------------------------------------------------${RESET}"
     echo "${GREEN}1. The configuration dir is in ${RESET}/usr/local/etc/juicity${GREEN},${RESET}"
-    echo "${GREEN}   and the server config file is juicity-server.json,${RESET}"
-    echo "${GREEN}   the client config file is juicity-client.json.${RESET}"
-    echo "${GREEN}2. The example config files are juicity-server.json.example${RESET}"
-    echo "${GREEN}   and juicity-client.json.example.${RESET}"
+    echo "${GREEN}   and the server config file is server.json,${RESET}"
+    echo "${GREEN}   the client config file is client.json.${RESET}"
+    echo "${GREEN}2. The example config files are server.json.example${RESET}"
+    echo "${GREEN}   and client.json.example.${RESET}"
     echo "${GREEN}-------------------------------------------------------------${RESET}"
 }
 
