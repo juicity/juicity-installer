@@ -272,8 +272,8 @@ install_juicity() {
     chmod +x /usr/local/bin/juicity-server
     mv "$tmp_dir/juicity-client" /usr/local/bin/juicity-client
     chmod +x /usr/local/bin/juicity-client
-    mv "$tmp_dir/example-server.json" /usr/local/etc/juicity/juicity-server.json.example
-    mv "$tmp_dir/example-client.json" /usr/local/etc/juicity/juicity-client.json.example
+    mv "$tmp_dir/example-server.json" /usr/local/etc/juicity/server.json.example
+    mv "$tmp_dir/example-client.json" /usr/local/etc/juicity/client.json.example
     rm -rf "$tmp_dir"
     if [ "$(uname)" = "Darwin" ]; then
         xattr -rd com.apple.quarantine /usr/local/bin/juicity-server
@@ -301,10 +301,21 @@ start_juicity() {
 notice_config_path() {
     echo "${GREEN}-------------------------------------------------------------${RESET}"
     echo "${GREEN}1. The configuration dir is in ${RESET}/usr/local/etc/juicity${GREEN},${RESET}"
-    echo "${GREEN}   and the server config file is server.json,${RESET}"
-    echo "${GREEN}   the client config file is client.json.${RESET}"
-    echo "${GREEN}2. The example config files are server.json.example${RESET}"
-    echo "${GREEN}   and client.json.example.${RESET}"
+    echo "${GREEN}   and the server config file is server.json, the client ${RESET}"
+    echo "${GREEN}   config file is client.json.${RESET}"
+    echo "${GREEN}2. The example config files are server.json.example and ${RESET}"
+    echo "${GREEN}   client.json.example, don't use them directly but move${RESET}"
+    echo "${GREEN}   them to server.json and client.json.${RESET}"
+    echo "${GREEN}3. Juicity server and client will run as daemon(s), you can${RESET}"
+    echo "${GREEN}   use systemctl or rc-service to manage them.${RESET}"
+    echo "${GREEN}4. An SSL certificate is required to run the Juicity server,${RESET}"
+    echo "${GREEN}   you can apply for a certificate through certbot or acme.sh${RESET}"
+    echo "${GREEN}   , lego. ${RESET}"
+    echo "${GREEN}-------------------------------------------------------------${RESET}"
+    echo "${GREEN}These acme clients might be helpful for you: ${RESET}"
+    echo "1. https://github.com/go-acme/lego"
+    echo "2. https://certbot.eff.org/"
+    echo "3. https://github.com/acmesh-official/acme.sh"
     echo "${GREEN}-------------------------------------------------------------${RESET}"
 }
 
