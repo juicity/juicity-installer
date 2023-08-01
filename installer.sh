@@ -84,7 +84,7 @@ check_arch_and_os() {
             'armv7l')
                 ARCH='armv7'
                 ;;
-            'armv8' | 'aarch64')
+            'armv8' | 'aarch64' | 'arm64')
                 ARCH='arm64'
                 ;;
             'mips')
@@ -128,7 +128,7 @@ check_arch_and_os() {
             'x86_64' | 'amd64')
                 ARCH='x86_64'
                 ;;
-            'arm64')
+            'arm64' | 'aarch64')
                 ARCH='arm64'
                 ;;
             *)
@@ -308,7 +308,7 @@ notice_config_path() {
     echo "${GREEN}   them to server.json and client.json.${RESET}"
     echo "${GREEN}3. If you are using systemd or OpenRC, services will be ${RESET}"
     echo "${GREEN}   installed, you can use systemctl or rc-service to manage${RESET}"
-    echo "${GREEN}   them. However, if you are not use systemd or OpenRC, no${RESET}"
+    echo "${GREEN}   them. However, if you are not using systemd or OpenRC, no${RESET}"
     echo "${GREEN}   services will be installed, you need to manage the${RESET}"
     echo "${GREEN}   services by yourself.${RESET}"
     echo "${GREEN}4. An SSL certificate is required to run the Juicity server,${RESET}"
