@@ -212,14 +212,14 @@ download_systemd_service() (
 )
 
 download_openrc_service() (
-    JUICITY_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity/master/openrc/juicity-server"
+    JUICITY_SERVICE_URL="https://github.com/juicity/juicity-installer/raw/master/OpenRC/juicity-server"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server"
     echo "${GREEN}Downloading juicity server service file from $JUICITY_SERVICE_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
         echo "${RED}error: Download juicity service file failed!${RESET}"
         exit 1
     fi
-    JUICITY_CLIENT_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity/master/openrc/juicity-client"
+    JUICITY_CLIENT_SERVICE_URL="https://github.com/juicity/juicity-installer/raw/master/OpenRC/juicity-client"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client"
     echo "${GREEN}Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL...${RESET}"
     if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
