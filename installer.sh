@@ -226,8 +226,8 @@ download_openrc_service() (
         echo "${RED}error: Download juicity client service file failed!${RESET}"
         exit 1
     fi
-    mv juicity-server /etc/init.d/juicity-server
-    mv juicity-client /etc/init.d/juicity-client
+    mv /tmp/juicity-server /etc/init.d/juicity-server
+    mv /tmp/juicity-client /etc/init.d/juicity-client
     chmod +x /etc/init.d/juicity-server
     chmod +x /etc/init.d/juicity-client
 )
