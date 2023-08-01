@@ -25,8 +25,11 @@ if [ "$(id -u)" != '0' ]; then
 fi
 
 ## Check Command
-for tool in curl unzip; do
-    if ! command -v $tool> /dev/null 2>&1; then
+if [ "$(uname)" = Linux ]; then
+    virt_what="virt-what"
+fi
+for tool in curl unzip "$virt_what"; do
+    if ! command -v "$tool"> /dev/null 2>&1; then
         tool_need="$tool"" ""$tool_need"
     fi
 done
@@ -107,7 +110,7 @@ check_arch_and_os() {
                 exit 1
                 ;;
         esac
-        if [ "$ARCH" = 'amd64' ]; then
+        if [ "$ARCH" = 'amd64' ] && [ -z "$(virt-what)" ]; then
             if cat /proc/cpuinfo | grep avx2 > /dev/null 2>&1; then
                 ARCH='x86_64_v3_avx2'
             elif cat /proc/cpuinfo | grep sse > /dev/null 2>&1; then
@@ -115,6 +118,8 @@ check_arch_and_os() {
             else
                 ARCH='x86_64'
             fi
+        elif [ "$ARCH" = 'amd64' ]; then
+            ARCH='x86_64'
         fi
     fi
     if [ "$(uname)" = 'Darwin' ]; then
@@ -294,13 +299,13 @@ start_juicity() {
 }
 
 notice_config_path() {
-    echo "${GREEN}------------------------------------------------------${RESET}"
-    echo "${GREEN}1. The configuration dir is in /usr/local/etc/juicity,${RESET}"
+    echo "${GREEN}-------------------------------------------------------------${RESET}"
+    echo "${GREEN}1. The configuration dir is in ${RESET}/usr/local/etc/juicity${GREEN},${RESET}"
     echo "${GREEN}   and the server config file is juicity-server.json,${RESET}"
     echo "${GREEN}   the client config file is juicity-client.json.${RESET}"
-    echo "${GREEN}2. The Example config files are juicity-server.json.example${RESET}"
+    echo "${GREEN}2. The example config files are juicity-server.json.example${RESET}"
     echo "${GREEN}   and juicity-client.json.example.${RESET}"
-    echo "${GREEN}------------------------------------------------------${RESET}"
+    echo "${GREEN}-------------------------------------------------------------${RESET}"
 }
 
 main() {
