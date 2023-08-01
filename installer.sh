@@ -153,7 +153,7 @@ check_version() {
 }
 
 create_etc_juicity() {
-    if [ ! -d /etc/juicity ]; then
+    if [ ! -d /usr/local/etc/juicity ]; then
         mkdir -p /usr/local/etc/juicity
     fi
 }
@@ -267,6 +267,8 @@ install_juicity() {
     chmod +x /usr/local/bin/juicity-server
     mv "$tmp_dir/juicity-client" /usr/local/bin/juicity-client
     chmod +x /usr/local/bin/juicity-client
+    mv "$tmp_dir/example-server.json" /usr/local/etc/juicity/juicity-server.json.example
+    mv "$tmp_dir/example-client.json" /usr/local/etc/juicity/juicity-client.json.example
     rm -rf "$tmp_dir"
     if [ "$(uname)" = "Darwin" ]; then
         xattr -rd com.apple.quarantine /usr/local/bin/juicity-server
@@ -291,7 +293,17 @@ start_juicity() {
     fi
 }
 
-main (){
+notice_config_path() {
+    echo "${GREEN}------------------------------------------------------${RESET}"
+    echo "${GREEN}1. The configuration dir is in /usr/local/etc/juicity,${RESET}"
+    echo "${GREEN}   and the server config file is juicity-server.json,${RESET}"
+    echo "${GREEN}   the client config file is juicity-client.json.${RESET}"
+    echo "${GREEN}2. The Example config files are juicity-server.json.example${RESET}"
+    echo "${GREEN}   and juicity-client.json.example.${RESET}"
+    echo "${GREEN}------------------------------------------------------${RESET}"
+}
+
+main() {
     check_arch_and_os
     check_version
     create_etc_juicity
@@ -302,6 +314,7 @@ main (){
     start_juicity
     echo "${GREEN}Installed successfully!${RESET}"
     notice_installled_tool
+    notice_config_path
 }
 
 main
