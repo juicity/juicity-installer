@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC3000-SC4000
 
-set -e
+# set -e
 
 ## Color
 if command -v tput > /dev/null 2>&1; then
