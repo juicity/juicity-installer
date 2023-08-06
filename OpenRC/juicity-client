@@ -7,7 +7,18 @@ command="/usr/local/bin/juicity-client"
 command_args="run -c /usr/local/etc/juicity/client.json"
 command_user="nobody"
 command_background="yes"
+output_log="/var/log/$RC_SVCNAME/access.log"
+error_log="/var/log/$RC_SVCNAME/error.log"
 
 depend() {
 	after net dns 
+}
+
+start_pre() {
+    if [ ! -d "/tmp/$RC_SVCNAME/" ]; then 
+        mkdir "/tmp/$RC_SVCNAME" 
+    fi
+    if [ ! -L "/var/log/$RC_SVCNAME" ]; then
+        ln -s "/tmp/$RC_SVCNAME/" "/var/log/"
+    fi
 }

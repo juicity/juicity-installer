@@ -247,20 +247,24 @@ download_service() {
 stop_juicity() {
     if command -v systemctl > /dev/null 2>&1; then
         if [ "$(systemctl is-active juicity-server)" = 'active' ]; then
+            echo "${GREEN}Stopping juicity server...${RESET}"
             systemctl stop juicity-server
             juicity_server_stopped=1
         fi
         if [ "$(systemctl is-active juicity-client)" = 'active' ]; then
+            echo "${GREEN}Stopping juicity client...${RESET}"
             systemctl stop juicity-client
             juicity_client_stopped=1
         fi
     fi
     if command -v rc-service > /dev/null 2>&1; then
         if [ -f /sbin/openrc-run ] && [ -f /run/juicity-server.pid ]; then
+            echo "${GREEN}Stopping juicity server...${RESET}"
             rc-service juicity-server stop
             juicity_server_stopped=1
         fi
         if [ -f /sbin/openrc-run ] && [ -f /run/juicity-client.pid ]; then
+            echo "${GREEN}Stopping juicity client...${RESET}"
             rc-service juicity-client stop
             juicity_client_stopped=1
         fi
@@ -285,6 +289,7 @@ install_juicity() {
 
 start_juicity() {
     if [ "$juicity_server_stopped" = '1' ]; then
+        echo "${GREEN}Starting juicity server...${RESET}"
         if [ -f /sbin/openrc-run ]; then
             rc-service juicity-server start
         elif command -v systemctl > /dev/null 2>&1; then
@@ -292,6 +297,7 @@ start_juicity() {
         fi
     fi
     if [ "$juicity_client_stopped" = '1' ]; then
+        echo "${GREEN}Starting juicity client...${RESET}"
         if [ -f /sbin/openrc-run ]; then
             rc-service juicity-client start
         elif command -v systemctl > /dev/null 2>&1; then
