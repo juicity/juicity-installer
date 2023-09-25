@@ -258,12 +258,12 @@ stop_juicity() {
         fi
     fi
     if command -v rc-service > /dev/null 2>&1; then
-        if [ -f /sbin/openrc-run ] && [ -f /run/juicity-server.pid ]; then
+        if [ -f /sbin/openrc-run ] && [ -n "$(pidof juicity-server)" ]; then
             echo "${GREEN}Stopping juicity server...${RESET}"
             rc-service juicity-server stop
             juicity_server_stopped=1
         fi
-        if [ -f /sbin/openrc-run ] && [ -f /run/juicity-client.pid ]; then
+        if [ -f /sbin/openrc-run ] && [ -n "$(pidof juicity-client)" ]; then
             echo "${GREEN}Stopping juicity client...${RESET}"
             rc-service juicity-client stop
             juicity_client_stopped=1
