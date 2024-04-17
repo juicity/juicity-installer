@@ -141,16 +141,41 @@ check_arch_and_os() {
     fi
 }
 
+
 check_version() {
     if [ -z "$JUICITY_VERSION" ]; then
-        JUICITY_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity/releases/latest | grep 'tag_name' | cut -d\" -f4)
-        [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server -v | awk '{print $3}')" || LOCAL_VERSION=0
-        if [ "$JUICITY_VERSION" = "$LOCAL_VERSION" ] && [ "$LOCAL_VERSION" != 0 ]; then
+        JUICITY_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity/releases/latest | awk -F 'tag_name' '{printf $2}' | awk -F '"' '{printf $3}')
+        [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server -v | head -n 1 | awk '{print $3}')" || LOCAL_VERSION=0
+        case "$LOCAL_VERSION" in
+            v[0-9]*.[0-9]*.[0-9]*)
+                is_local_version_legal=1
+                ;;
+            *)
+                is_local_version_legal=0
+                ;;
+        esac
+        if [ "$is_local_version_legal" = 0 ]; then
+            echo "$RED""The local version number of juicity is illegal, it should be like:""$RESET"
+            echo "$RED""v0.1.0""$RESET"
+            echo "$RED""But we got:""$RESET"
+            echo "$RED""$LOCAL_VERSION""$RESET"
+            echo "$RED""If you have installed juicity from other providers, please uninstall""$RESET"
+            echo "$RED""it first then try again.""$RESET"
+            exit
+        fi
+        if [ "$JUICITY_VERSION" = "$LOCAL_VERSION" ]; then
             echo "$GREEN""Latest version $JUICITY_VERSION already installed.""$RESET" && exit 0 
-        elif [ "$LOCAL_VERSION" != 0 ]; then
+        elif [ "$LOCAL_VERSION" != 0 ] && [ "$(printf '%s\n' "$LOCAL_VERSION" "$JUICITY_VERSION" | sort -rV | head -n1)" = "$JUICITY_VERSION" ]; then
             echo "$GREEN""Upgrading juicity from $LOCAL_VERSION to $JUICITY_VERSION...""$RESET"
-        else
+        elif [ "$LOCAL_VERSION" = 0 ]; then
             echo "$GREEN""Installing juicity $JUICITY_VERSION...""$RESET"
+        else
+            echo "${YELLOW}warning: You are installing juicity version $JUICITY_VERSION${RESET}"
+            echo "${YELLOW}which is older than local version $LOCAL_VERSION, if you still${RESET}"
+            echo "${YELLOW}want to install this online version of juicity, please${RESET}"
+            echo "${YELLOW}set JUICITY_VERSION variable then try again, or you can${RESET}"
+            echo "${YELLOW}uninstall local installed version at first.{RESET}"
+            exit 1
         fi
     else
         echo "${YELLOW}warning: You are installing juicity version $JUICITY_VERSION${RESET}"
