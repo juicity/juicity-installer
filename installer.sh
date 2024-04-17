@@ -146,7 +146,14 @@ check_version() {
     if [ -z "$JUICITY_VERSION" ]; then
         JUICITY_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity/releases/latest | awk -F 'tag_name' '{printf $2}' | awk -F '"' '{printf $3}')
         [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server -v | head -n 1 | awk '{print $3}')" || LOCAL_VERSION=0
-        is_local_version_legal=$(awk '^[0-9]+$' <<< "$LOCAL_VERSION")
+        case "$LOCAL_VERSION" in
+            v[0-9]*.[0-9]*.[0-9]*)
+                is_local_version_legal=1
+                ;;
+            *)
+                is_local_version_legal=0
+                ;;
+        esac
         if [ "$is_local_version_legal" = 0 ]; then
             echo "$RED""The local version number of juicity is illegal, it should be like:""$RESET"
             echo "$RED""v0.1.0""$RESET"
