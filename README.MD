@@ -2,6 +2,8 @@
 
 ## Installation
 
+### Go version
+
 Install with curl:
 
 ```sh
@@ -12,6 +14,20 @@ Install with wget:
 
 ```sh
 sudo sh -c "$(wget -qO- https://github.com/juicity/juicity-installer/raw/master/installer.sh)"
+```
+
+### Rust version
+
+Install with curl:
+
+```sh
+sudo sh -c "$(curl -sL https://github.com/juicity/juicity-installer/raw/master/installer-rs.sh)"
+```
+
+Install with wget:
+
+```sh
+sudo sh -c "$(wget -qO- https://github.com/juicity/juicity-installer/raw/master/installer-rs.sh)"
 ```
 
 ## Uninstallation
