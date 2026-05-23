@@ -126,7 +126,7 @@ check_arch_and_os() {
 check_version() {
     if [ -z "$JUICITY_RS_VERSION" ]; then
         JUICITY_RS_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity-rs/releases/latest | awk -F 'tag_name' '{printf $2}' | awk -F '"' '{printf $3}')
-        [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server --version 2>/dev/null | head -n 1 | awk '{print $NF}')" || LOCAL_VERSION=0
+        [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server --version 2>/dev/null | grep tag | awk -F ' ' '{print $2}')" || LOCAL_VERSION=0
         if [ "$LOCAL_VERSION" != 0 ]; then
             case "$LOCAL_VERSION" in
                 v[0-9]*)
