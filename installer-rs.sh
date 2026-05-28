@@ -291,7 +291,7 @@ stop_juicity() {
 install_juicity_rs() {
     tmp_dir=$(mktemp -d)
     unzip -o "$JUICITY_RS_DOWNLOAD_TMP_FILE" -d "$tmp_dir"
-    pkg_dir="$tmp_dir/juicity-$TARGET"
+    pkg_dir="$tmp_dir"
     mv "$pkg_dir/juicity-server" /usr/local/bin/juicity-server
     chmod +x /usr/local/bin/juicity-server
     mv "$pkg_dir/juicity-client" /usr/local/bin/juicity-client
