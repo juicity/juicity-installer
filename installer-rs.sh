@@ -4,6 +4,103 @@
 
 # set -e
 
+usage() {
+    cat <<'EOF'
+Usage: installer-rs.sh [options]
+
+Options:
+  --libc-target glibc|musl   Force Linux libc target instead of auto detect.
+  --x86-64-version v2|v3     Use x86_64 CPU optimized build variant on Linux.
+    --force                     Skip local version checks and force online install.
+    --version VERSION           Install the specified juicity-rs version directly.
+  -h, --help                 Show this help message.
+EOF
+}
+
+parse_args() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --libc-target)
+                if [ -z "$2" ]; then
+                    echo "${RED}error: --libc-target requires an argument: glibc or musl${RESET}"
+                    exit 1
+                fi
+                case "$2" in
+                    glibc)
+                        USER_LIBC_TARGET='gnu'
+                        ;;
+                    musl)
+                        USER_LIBC_TARGET='musl'
+                        ;;
+                    *)
+                        echo "${RED}error: --libc-target only supports glibc or musl${RESET}"
+                        exit 1
+                        ;;
+                esac
+                shift 2
+                ;;
+            --x86-64-version)
+                if [ -z "$2" ]; then
+                    echo "${RED}error: --x86-64-version requires an argument: v2 or v3${RESET}"
+                    exit 1
+                fi
+                case "$2" in
+                    v2 | v3)
+                        X86_64_VERSION="$2"
+                        ;;
+                    *)
+                        echo "${RED}error: --x86-64-version only supports v2 or v3${RESET}"
+                        exit 1
+                        ;;
+                esac
+                shift 2
+                ;;
+            --force)
+                FORCE_INSTALL=1
+                shift
+                ;;
+            --version)
+                if [ -z "$2" ]; then
+                    echo "${RED}error: --version requires a version argument${RESET}"
+                    exit 1
+                fi
+                USER_JUICITY_RS_VERSION="$2"
+                shift 2
+                ;;
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            *)
+                echo "${RED}error: Unknown argument: $1${RESET}"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+}
+
+validate_args() {
+    OS_NAME="$(uname)"
+    ARCH_NAME="$(uname -m)"
+
+    if [ -n "$USER_LIBC_TARGET" ] && [ "$OS_NAME" != 'Linux' ]; then
+        echo "${RED}error: --libc-target only supports Linux${RESET}"
+        exit 1
+    fi
+
+    if [ -n "$X86_64_VERSION" ]; then
+        if [ "$OS_NAME" != 'Linux' ]; then
+            echo "${RED}error: --x86-64-version only supports Linux${RESET}"
+            exit 1
+        fi
+        if [ "$ARCH_NAME" != 'x86_64' ] && [ "$ARCH_NAME" != 'amd64' ]; then
+            echo "${RED}error: --x86-64-version only supports x86_64/amd64${RESET}"
+            exit 1
+        fi
+    fi
+}
+
 ## Color
 if command -v tput > /dev/null 2>&1; then
     RED=$(tput setaf 1)
@@ -77,10 +174,17 @@ detect_libc() {
 
 check_arch_and_os() {
     if [ "$(uname)" = 'Linux' ]; then
-        detect_libc
+        if [ -n "$USER_LIBC_TARGET" ]; then
+            LIBC="$USER_LIBC_TARGET"
+        else
+            detect_libc
+        fi
         case "$(uname -m)" in
             'x86_64' | 'amd64')
                 TARGET="x86_64-unknown-linux-$LIBC"
+                if [ -n "$X86_64_VERSION" ]; then
+                    TARGET="$TARGET-$X86_64_VERSION"
+                fi
                 ;;
             'i386' | 'i686')
                 TARGET="i686-unknown-linux-$LIBC"
@@ -124,8 +228,21 @@ check_arch_and_os() {
 }
 
 check_version() {
+    if [ -n "$USER_JUICITY_RS_VERSION" ]; then
+        JUICITY_RS_VERSION="$USER_JUICITY_RS_VERSION"
+        echo "${YELLOW}warning: You are installing juicity-rs version $JUICITY_RS_VERSION${RESET}"
+        LOCAL_VERSION=0
+        return
+    fi
+
     if [ -z "$JUICITY_RS_VERSION" ]; then
         JUICITY_RS_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity-rs/releases/latest | awk -F 'tag_name' '{printf $2}' | awk -F '"' '{printf $3}')
+        if [ "$FORCE_INSTALL" = '1' ]; then
+            echo "${YELLOW}warning: Force install enabled, local version check is skipped.${RESET}"
+            echo "$GREEN""Installing juicity-rs $JUICITY_RS_VERSION...""$RESET"
+            LOCAL_VERSION=0
+            return
+        fi
         [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server --version 2>/dev/null | grep tag | awk -F ' ' '{print $2}')" || LOCAL_VERSION=0
         if [ "$LOCAL_VERSION" != 0 ]; then
             case "$LOCAL_VERSION" in
@@ -349,6 +466,8 @@ notice_config_path() {
 }
 
 main() {
+    parse_args "$@"
+    validate_args
     check_arch_and_os
     check_version
     create_etc_juicity
@@ -362,4 +481,4 @@ main() {
     notice_config_path
 }
 
-main
+main "$@"

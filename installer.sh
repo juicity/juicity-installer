@@ -4,6 +4,45 @@
 
 # set -e
 
+usage() {
+    cat <<'EOF'
+Usage: installer.sh [options]
+
+Options:
+  --force            Skip local version checks and force online install.
+  --version VERSION  Install the specified juicity version directly.
+  -h, --help         Show this help message.
+EOF
+}
+
+parse_args() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --force)
+                FORCE_INSTALL=1
+                shift
+                ;;
+            --version)
+                if [ -z "$2" ]; then
+                    echo "${RED}error: --version requires a version argument${RESET}"
+                    exit 1
+                fi
+                USER_JUICITY_VERSION="$2"
+                shift 2
+                ;;
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            *)
+                echo "${RED}error: Unknown argument: $1${RESET}"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+}
+
 ## Color
 if command -v tput > /dev/null 2>&1; then
     RED=$(tput setaf 1)
@@ -143,8 +182,21 @@ check_arch_and_os() {
 
 
 check_version() {
+    if [ -n "$USER_JUICITY_VERSION" ]; then
+        JUICITY_VERSION="$USER_JUICITY_VERSION"
+        echo "${YELLOW}warning: You are installing juicity version $JUICITY_VERSION${RESET}"
+        LOCAL_VERSION=0
+        return
+    fi
+
     if [ -z "$JUICITY_VERSION" ]; then
         JUICITY_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity/releases/latest | awk -F 'tag_name' '{printf $2}' | awk -F '"' '{printf $3}')
+        if [ "$FORCE_INSTALL" = '1' ]; then
+            echo "${YELLOW}warning: Force install enabled, local version check is skipped.${RESET}"
+            echo "$GREEN""Installing juicity $JUICITY_VERSION...""$RESET"
+            LOCAL_VERSION=0
+            return
+        fi
         [ -f /usr/local/bin/juicity-server ] && LOCAL_VERSION="$(/usr/local/bin/juicity-server -v | head -n 1 | awk '{print $3}')" || LOCAL_VERSION=0
         if [ "$LOCAL_VERSION" != 0 ]; then
             case "$LOCAL_VERSION" in
@@ -358,6 +410,7 @@ notice_config_path() {
 }
 
 main() {
+    parse_args "$@"
     check_arch_and_os
     check_version
     create_etc_juicity
@@ -371,4 +424,4 @@ main() {
     notice_config_path
 }
 
-main
+main "$@"
