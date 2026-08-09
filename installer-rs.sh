@@ -9,10 +9,10 @@ usage() {
 Usage: installer-rs.sh [options]
 
 Options:
-  --libc-target glibc|musl   Force Linux libc target instead of auto detect.
-  --x86-64-version v2|v3     Use x86_64 CPU optimized build variant on Linux.
-    --force                     Skip local version checks and force online install.
-    --version VERSION           Install the specified juicity-rs version directly.
+  --libc-target glibc|musl   Force Linux libc target instead of auto detect. 
+  --x86-64-version v2|v3     Use x86_64 CPU optimized build variant on Linux. 
+  --force                    Skip local version checks and force online install. 
+  --version VERSION          Install the specified juicity-rs version directly. 
   -h, --help                 Show this help message.
 EOF
 }
