@@ -314,7 +314,7 @@ create_juicity_config() {
     fi
 
     # Create JSON config using jq
-    USERS_JSON=$(jq -n --arg u "$UUID" --arg p "$PASSWORD" '$u + ":" + $p' | jq -R '{($.): .}')
+    USERS_JSON=$(jq -n --arg u "$UUID" --arg p "$PASSWORD" '{($u): $p}')
     jq -n \
         --arg listen "$LISTEN_ADDR" \
         --argjson users "$USERS_JSON" \
@@ -324,7 +324,7 @@ create_juicity_config() {
         > "$CONFIG_PATH"
 
     if [ $? -ne 0 ] || [ ! -f "$CONFIG_PATH" ]; then
-        echo_red "error: Failed to create config file using jo!"
+        echo_red "error: Failed to create config file using jq!"
         exit 1
     fi
 
