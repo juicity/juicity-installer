@@ -274,21 +274,32 @@ ask_juicity_config_path() {
     done
 
     # Collect config values
-    echo_yellow "Enter listen address (e.g. 0.0.0.0:443):"
+    echo_yellow "Enter listen address [default: :23182]:"
     read -r LISTEN_ADDR
+    LISTEN_ADDR="${LISTEN_ADDR:-:23182}"
 
     if [ "$CERT_METHOD" = "selfsigned" ]; then
-        echo_yellow "Certificate will be generated. Enter UUID:"
+        echo_yellow "Certificate will be generated."
     else
         echo_yellow "Enter certificate file path:"
         read -r CERT_PATH
         echo_yellow "Enter key file path:"
         read -r KEY_PATH
-        echo_yellow "Enter UUID:"
     fi
+
+    echo_yellow "Enter UUID [default: random]:"
     read -r UUID
-    echo_yellow "Enter password:"
+    if [ -z "$UUID" ]; then
+        UUID=$(cat /sys/kernel/random/uuid)
+        echo_yellow "Generated UUID: $UUID"
+    fi
+
+    echo_yellow "Enter password [default: random]:"
     read -r PASSWORD
+    if [ -z "$PASSWORD" ]; then
+        PASSWORD=$(head -c 32 /sys/kernel/random/uuid | tr -d '-')
+        echo_yellow "Generated password: $PASSWORD"
+    fi
 }
 
 ## Create juicity config file
@@ -343,7 +354,7 @@ obtain_ssl_cert() {
 
 ## Generate self-signed certificate using openssl
 generate_self_signed_cert() {
-    SSL_DIR="/etc/juicity/ssl"
+    SSL_DIR="/usr/local/etc/juicity/ssl"
     mkdir -p "$SSL_DIR"
 
     SELF_SIGNED_KEY="$SSL_DIR/$DOMAIN.key"
