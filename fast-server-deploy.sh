@@ -27,6 +27,10 @@ show_notice () {
     echo_yellow "This script supports two certificate methods:"
     echo_yellow "  1. CertBot (requires nginx)"
     echo_yellow "  2. Self-signed certificate (uses openssl)"
+    echo_yellow "This script comes with no warranty. Use at your "
+    echo_yellow "own risk."
+    echo_yellow_bold '------------------------------------------'
+
 }
 
 ## Check OS
@@ -124,8 +128,8 @@ define_packages() {
 ## Ask certificate method
 ask_cert_method() {
     echo_yellow "Choose certificate method:"
-    echo_yellow "  1) CertBot (official certificate, requires nginx)"
-    echo_yellow "  2) Self-signed certificate (uses openssl)"
+    echo_green "  1) CertBot (official certificate, requires nginx)"
+    echo_green "  2) Self-signed certificate (uses openssl)"
     while true; do
         read -r cert_choice
         case "$cert_choice" in
@@ -171,8 +175,8 @@ ask_domain_email() {
     while true; do
         echo_yellow "Enter your domain:"
         read -r DOMAIN
-        echo_yellow "Your domain is: $DOMAIN"
-        echo_yellow "Confirm? (y/n)"
+        echo_green "Your domain is: $DOMAIN"
+        echo_green "Confirm? (y/n)"
         read -r confirm
         case "$confirm" in
             y|Y) break ;;
@@ -183,8 +187,8 @@ ask_domain_email() {
     while true; do
         echo_yellow "Enter your email:"
         read -r EMAIL
-        echo_yellow "Your email is: $EMAIL"
-        echo_yellow "Confirm? (y/n)"
+        echo_green "Your email is: $EMAIL"
+        echo_green "Confirm? (y/n)"
         read -r confirm
         case "$confirm" in
             y|Y) break ;;
@@ -315,7 +319,7 @@ create_juicity_config() {
         users="$(jo "$UUID"="$PASSWORD")" \
         certificate="$CERT_PATH" \
         key="$KEY_PATH" \
-        > "$CONFIG_PATH" 2>/dev/null
+        > "$CONFIG_PATH"
 
     if [ $? -ne 0 ] || [ ! -f "$CONFIG_PATH" ]; then
         echo_red "error: Failed to create config file using jo!"
@@ -330,6 +334,8 @@ create_juicity_config() {
     fi
 
     echo_green "Juicity config created and validated at $CONFIG_PATH"
+    echo_yellow "Config content:"
+    jq . "$CONFIG_PATH"
 }
 
 ## Install packages
