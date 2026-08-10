@@ -313,12 +313,14 @@ create_juicity_config() {
         KEY_PATH="$SELF_SIGNED_KEY"
     fi
 
-    # Create JSON config using jo
-    jo -p \
-        listen="$LISTEN_ADDR" \
-        users="$(jo "$UUID"="$PASSWORD")" \
-        certificate="$CERT_PATH" \
-        key="$KEY_PATH" \
+    # Create JSON config using jq
+    USERS_JSON=$(jq -n --arg u "$UUID" --arg p "$PASSWORD" '$u + ":" + $p' | jq -R '{($.): .}')
+    jq -n \
+        --arg listen "$LISTEN_ADDR" \
+        --argjson users "$USERS_JSON" \
+        --arg cert "$CERT_PATH" \
+        --arg key "$KEY_PATH" \
+        '{listen: $listen, users: $users, certificate: $cert, key: $key}' \
         > "$CONFIG_PATH"
 
     if [ $? -ne 0 ] || [ ! -f "$CONFIG_PATH" ]; then
