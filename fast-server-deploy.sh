@@ -63,27 +63,27 @@ define_packages() {
     if [ "$CERT_METHOD" = "certbot" ]; then
         case "$PACKAGE_MANAGER" in
             apt)
-                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq"
                 INSTALL_CMD="apt update && apt install -y $PACKAGES"
                 ;;
             dnf)
-                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq"
                 INSTALL_CMD="dnf install -y $PACKAGES"
                 ;;
             yum)
-                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq"
                 INSTALL_CMD="yum install -y $PACKAGES"
                 ;;
             pacman)
-                PACKAGES="nginx certbot python-certbot-nginx curl unzip jq jo"
+                PACKAGES="nginx certbot python-certbot-nginx curl unzip jq"
                 INSTALL_CMD="pacman -Sy --noconfirm $PACKAGES"
                 ;;
             zypper)
-                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq"
                 INSTALL_CMD="zypper --non-interactive install $PACKAGES"
                 ;;
             apk)
-                PACKAGES="nginx certbot py3-certbot-nginx curl unzip jq jo"
+                PACKAGES="nginx certbot py3-certbot-nginx curl unzip jq"
                 INSTALL_CMD="apk add $PACKAGES"
                 ;;
             *)
@@ -94,27 +94,27 @@ define_packages() {
     else
         case "$PACKAGE_MANAGER" in
             apt)
-                PACKAGES="openssl curl unzip jq jo"
+                PACKAGES="openssl curl unzip jq"
                 INSTALL_CMD="apt update && apt install -y $PACKAGES"
                 ;;
             dnf)
-                PACKAGES="openssl curl unzip jq jo"
+                PACKAGES="openssl curl unzip jq"
                 INSTALL_CMD="dnf install -y $PACKAGES"
                 ;;
             yum)
-                PACKAGES="openssl curl unzip jq jo"
+                PACKAGES="openssl curl unzip jq"
                 INSTALL_CMD="yum install -y $PACKAGES"
                 ;;
             pacman)
-                PACKAGES="openssl curl unzip jq jo"
+                PACKAGES="openssl curl unzip jq"
                 INSTALL_CMD="pacman -Sy --noconfirm $PACKAGES"
                 ;;
             zypper)
-                PACKAGES="openssl curl unzip jq jo"
+                PACKAGES="openssl curl unzip jq"
                 INSTALL_CMD="zypper --non-interactive install $PACKAGES"
                 ;;
             apk)
-                PACKAGES="openssl curl unzip jq jo"
+                PACKAGES="openssl curl unzip jq"
                 INSTALL_CMD="apk add $PACKAGES"
                 ;;
             *)
