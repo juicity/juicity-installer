@@ -320,7 +320,7 @@ create_juicity_config() {
         --argjson users "$USERS_JSON" \
         --arg cert "$CERT_PATH" \
         --arg key "$KEY_PATH" \
-        '{listen: $listen, users: $users, certificate: $cert, key: $key}' \
+        '{listen: $listen, users: $users, certificate: $cert, private_key: $key, congestion_control: "bbr"}' \
         > "$CONFIG_PATH"
 
     if [ $? -ne 0 ] || [ ! -f "$CONFIG_PATH" ]; then
