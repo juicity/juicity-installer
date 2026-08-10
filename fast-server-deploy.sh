@@ -290,14 +290,14 @@ ask_juicity_config_path() {
     echo_yellow "Enter UUID [default: random]:"
     read -r UUID
     if [ -z "$UUID" ]; then
-        UUID=$(cat /sys/kernel/random/uuid)
+        UUID=$(cat /proc/sys/kernel/random/uuid)
         echo_yellow "Generated UUID: $UUID"
     fi
 
     echo_yellow "Enter password [default: random]:"
     read -r PASSWORD
     if [ -z "$PASSWORD" ]; then
-        PASSWORD=$(head -c 32 /sys/kernel/random/uuid | tr -d '-')
+        PASSWORD=$(head -c 32 /proc/sys/kernel/random/uuid | tr -d '-')
         echo_yellow "Generated password: $PASSWORD"
     fi
 }
