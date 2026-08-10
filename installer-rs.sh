@@ -4,25 +4,12 @@
 
 # set -e
 
-usage() {
-    cat <<'EOF'
-Usage: installer-rs.sh [options]
-
-Options:
-  --libc-target glibc|musl   Force Linux libc target instead of auto detect. 
-  --x86-64-version v2|v3     Use x86_64 CPU optimized build variant on Linux. 
-  --force                    Skip local version checks and force online install. 
-  --version VERSION          Install the specified juicity-rs version directly. 
-  -h, --help                 Show this help message.
-EOF
-}
-
 parse_args() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
             --libc-target)
                 if [ -z "$2" ]; then
-                    echo "${RED}error: --libc-target requires an argument: glibc or musl${RESET}"
+                    echo_red "error: --libc-target requires an argument: glibc or musl"
                     exit 1
                 fi
                 case "$2" in
@@ -33,7 +20,7 @@ parse_args() {
                         USER_LIBC_TARGET='musl'
                         ;;
                     *)
-                        echo "${RED}error: --libc-target only supports glibc or musl${RESET}"
+                        echo_red "error: --libc-target only supports glibc or musl"
                         exit 1
                         ;;
                 esac
@@ -41,7 +28,7 @@ parse_args() {
                 ;;
             --x86-64-version)
                 if [ -z "$2" ]; then
-                    echo "${RED}error: --x86-64-version requires an argument: v2 or v3${RESET}"
+                    echo_red "error: --x86-64-version requires an argument: v2 or v3"
                     exit 1
                 fi
                 case "$2" in
@@ -49,7 +36,7 @@ parse_args() {
                         X86_64_VERSION="$2"
                         ;;
                     *)
-                        echo "${RED}error: --x86-64-version only supports v2 or v3${RESET}"
+                        echo_red "error: --x86-64-version only supports v2 or v3"
                         exit 1
                         ;;
                 esac
@@ -61,7 +48,7 @@ parse_args() {
                 ;;
             --version)
                 if [ -z "$2" ]; then
-                    echo "${RED}error: --version requires a version argument${RESET}"
+                    echo_red "error: --version requires a version argument"
                     exit 1
                 fi
                 USER_JUICITY_RS_VERSION="$2"
@@ -72,7 +59,7 @@ parse_args() {
                 exit 0
                 ;;
             *)
-                echo "${RED}error: Unknown argument: $1${RESET}"
+                echo_red "error: Unknown argument: $1"
                 usage
                 exit 1
                 ;;
@@ -85,39 +72,63 @@ validate_args() {
     ARCH_NAME="$(uname -m)"
 
     if [ -n "$USER_LIBC_TARGET" ] && [ "$OS_NAME" != 'Linux' ]; then
-        echo "${RED}error: --libc-target only supports Linux${RESET}"
+        echo_red "error: --libc-target only supports Linux"
         exit 1
     fi
 
     if [ -n "$X86_64_VERSION" ]; then
         if [ "$OS_NAME" != 'Linux' ]; then
-            echo "${RED}error: --x86-64-version only supports Linux${RESET}"
+            echo_red "error: --x86-64-version only supports Linux"
             exit 1
         fi
         if [ "$ARCH_NAME" != 'x86_64' ] && [ "$ARCH_NAME" != 'amd64' ]; then
-            echo "${RED}error: --x86-64-version only supports x86_64/amd64${RESET}"
+            echo_red "error: --x86-64-version only supports x86_64/amd64"
             exit 1
         fi
     fi
 }
 
 ## Color
-if command -v tput > /dev/null 2>&1; then
-    RED=$(tput setaf 1)
-    GREEN=$(tput setaf 2)
-    YELLOW=$(tput setaf 3)
-    RESET=$(tput sgr0)
-fi
+echo_red() {
+  printf '\033[31m%s\033[0m\n' "$*"
+}
+echo_red_bold() {
+  printf "\033[1;31m%s\033[0m\n" "$1"
+}
+echo_yellow() {
+  printf '\033[33m%s\033[0m\n' "$*"
+}
+echo_yellow_bold() {
+  printf "\033[1;33m%s\033[0m\n" "$1"
+}
+echo_green() {
+  printf '\033[32m%s\033[0m\n' "$*"
+}
+echo_green_bold() {
+  printf "\033[1;32m%s\033[0m\n" "$1"
+}
+
+## Show usage
+usage() {
+echo_green_bold 'Usage: installer-rs.sh [options]'
+
+echo_green 'Options:'
+echo_green '  --libc-target glibc|musl   Force Linux libc target instead of auto detect.'
+echo_green '  --x86-64-version v2|v3     Use x86_64 CPU optimized build variant on Linux.'
+echo_green '  --force                    Skip local version checks and force online install.'
+echo_green '  --version VERSION          Install the specified juicity-rs version directly.'
+echo_green '  -h, --help                 Show this help message.'
+}
 
 ## Check System
 if [ "$(uname)" != 'Linux' ] && [ "$(uname)" != 'Darwin' ]; then
-    echo "${RED}error: This script only support Linux or macOS!${RESET}"
+    echo_red "error: This script only support Linux or macOS!"
     exit 1
 fi
 
 ## Check Root
 if [ "$(id -u)" != '0' ]; then
-    echo "${RED}error: This script must be run as root!${RESET}"
+    echo_red "error: This script must be run as root!"
     exit 1
 fi
 
@@ -154,9 +165,9 @@ fi
 
 notice_installled_tool() {
     if [ -n "$tool_need" ]; then
-        echo "${GREEN}You have installed the following tools during installation:${RESET}"
+        echo_green "You have installed the following tools during installation:"
         echo "$tool_need"
-        echo "${GREEN}You can uninstall them now if you want.${RESET}"
+        echo_green "You can uninstall them now if you want."
     fi
 }
 
@@ -206,7 +217,7 @@ check_arch_and_os() {
                 TARGET="riscv64gc-unknown-linux-$LIBC"
                 ;;
             *)
-                echo "${RED}error: Unsupported architecture: $(uname -m)${RESET}"
+                echo_red "error: Unsupported architecture: $(uname -m)"
                 exit 1
                 ;;
         esac
@@ -220,7 +231,7 @@ check_arch_and_os() {
                 TARGET='aarch64-apple-darwin'
                 ;;
             *)
-                echo "${RED}error: Unsupported architecture: $(uname -m)${RESET}"
+                echo_red "error: Unsupported architecture: $(uname -m)"
                 exit 1
                 ;;
         esac
@@ -230,7 +241,7 @@ check_arch_and_os() {
 check_version() {
     if [ -n "$USER_JUICITY_RS_VERSION" ]; then
         JUICITY_RS_VERSION="$USER_JUICITY_RS_VERSION"
-        echo "${YELLOW}warning: You are installing juicity-rs version $JUICITY_RS_VERSION${RESET}"
+        echo_yellow "warning: You are installing juicity-rs version $JUICITY_RS_VERSION"
         LOCAL_VERSION=0
         return
     fi
@@ -238,7 +249,7 @@ check_version() {
     if [ -z "$JUICITY_RS_VERSION" ]; then
         JUICITY_RS_VERSION=$(curl -s https://api.github.com/repos/juicity/juicity-rs/releases/latest | awk -F 'tag_name' '{printf $2}' | awk -F '"' '{printf $3}')
         if [ "$FORCE_INSTALL" = '1' ]; then
-            echo "${YELLOW}warning: Force install enabled, local version check is skipped.${RESET}"
+            echo_yellow "warning: Force install enabled, local version check is skipped."
             echo "$GREEN""Installing juicity-rs $JUICITY_RS_VERSION...""$RESET"
             LOCAL_VERSION=0
             return
@@ -270,15 +281,15 @@ check_version() {
         elif [ "$LOCAL_VERSION" = 0 ]; then
             echo "$GREEN""Installing juicity-rs $JUICITY_RS_VERSION...""$RESET"
         else
-            echo "${YELLOW}warning: You are installing juicity-rs version $JUICITY_RS_VERSION${RESET}"
-            echo "${YELLOW}which is older than local version $LOCAL_VERSION, if you still${RESET}"
-            echo "${YELLOW}want to install this online version of juicity-rs, please${RESET}"
-            echo "${YELLOW}set JUICITY_RS_VERSION variable then try again, or you can${RESET}"
-            echo "${YELLOW}uninstall local installed version at first.${RESET}"
+            echo_yellow "warning: You are installing juicity-rs version $JUICITY_RS_VERSION"
+            echo_yellow "which is older than local version $LOCAL_VERSION, if you still"
+            echo_yellow "want to install this online version of juicity-rs, please"
+            echo_yellow "set JUICITY_RS_VERSION variable then try again, or you can"
+            echo_yellow "uninstall local installed version at first."
             exit 1
         fi
     else
-        echo "${YELLOW}warning: You are installing juicity-rs version $JUICITY_RS_VERSION${RESET}"
+        echo_yellow "warning: You are installing juicity-rs version $JUICITY_RS_VERSION"
         LOCAL_VERSION=0
     fi
 }
@@ -293,9 +304,9 @@ download_juicity_rs() {
     ASSET_NAME="juicity-$TARGET.zip"
     JUICITY_RS_DOWNLOAD_URL="https://github.com/juicity/juicity-rs/releases/download/$JUICITY_RS_VERSION/$ASSET_NAME"
     JUICITY_RS_DOWNLOAD_TMP_FILE="/tmp/$ASSET_NAME"
-    echo "${GREEN}Downloading juicity-rs from $JUICITY_RS_DOWNLOAD_URL...${RESET}"
+    echo_green "Downloading juicity-rs from $JUICITY_RS_DOWNLOAD_URL..."
     if ! curl -# -L -o "$JUICITY_RS_DOWNLOAD_TMP_FILE" "$JUICITY_RS_DOWNLOAD_URL"; then
-        echo "${RED}error: Download juicity-rs failed!${RESET}"
+        echo_red "error: Download juicity-rs failed!"
         exit 1
     fi
     REMOTE_SHA256=$(curl -s "https://api.github.com/repos/juicity/juicity-rs/releases/tags/$JUICITY_RS_VERSION" | \
@@ -309,37 +320,37 @@ download_juicity_rs() {
             }
         ')
     if [ -z "$REMOTE_SHA256" ]; then
-        echo "${YELLOW}warning: Could not retrieve SHA256 from GitHub API, skipping verification.${RESET}"
+        echo_yellow "warning: Could not retrieve SHA256 from GitHub API, skipping verification."
     else
         if command -v sha256sum > /dev/null 2>&1; then
             local_sha256="$(sha256sum "$JUICITY_RS_DOWNLOAD_TMP_FILE" | cut -d' ' -f1)"
         elif command -v shasum > /dev/null 2>&1; then
             local_sha256="$(shasum -a 256 "$JUICITY_RS_DOWNLOAD_TMP_FILE" | cut -d' ' -f1)"
         else
-            echo "${RED}error: Can not find command sha256sum or shasum, sha256 cannot be calculated!${RESET}"
+            echo_red "error: Can not find command sha256sum or shasum, sha256 cannot be calculated!"
             exit 1
         fi
         if [ "$local_sha256" != "$REMOTE_SHA256" ]; then
-            echo "${RED}error: SHA256 verification failed!${RESET}"
+            echo_red "error: SHA256 verification failed!"
             exit 1
         fi
-        echo "${GREEN}SHA256 verification passed.${RESET}"
+        echo_green "SHA256 verification passed."
     fi
 }
 
 download_systemd_service() (
     JUICITY_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity-installer/master/systemd/juicity-server.service"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server.service"
-    echo "${GREEN}Downloading juicity server service file from $JUICITY_SERVICE_URL...${RESET}"
+    echo_green "Downloading juicity server service file from $JUICITY_SERVICE_URL..."
     if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
-        echo "${RED}error: Download juicity service file failed!${RESET}"
+        echo_red "error: Download juicity service file failed!"
         exit 1
     fi
     JUICITY_CLIENT_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity-installer/master/systemd/juicity-client.service"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client.service"
-    echo "${GREEN}Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL...${RESET}"
+    echo_green "Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL..."
     if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
-        echo "${RED}error: Download juicity client service file failed!${RESET}"
+        echo_red "error: Download juicity client service file failed!"
         exit 1
     fi
     mv /tmp/juicity-server.service /etc/systemd/system/juicity-server.service
@@ -350,16 +361,16 @@ download_systemd_service() (
 download_openrc_service() (
     JUICITY_SERVICE_URL="https://github.com/juicity/juicity-installer/raw/master/OpenRC/juicity-server"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server"
-    echo "${GREEN}Downloading juicity server service file from $JUICITY_SERVICE_URL...${RESET}"
+    echo_green "Downloading juicity server service file from $JUICITY_SERVICE_URL..."
     if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
-        echo "${RED}error: Download juicity service file failed!${RESET}"
+        echo_red "error: Download juicity service file failed!"
         exit 1
     fi
     JUICITY_CLIENT_SERVICE_URL="https://github.com/juicity/juicity-installer/raw/master/OpenRC/juicity-client"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client"
-    echo "${GREEN}Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL...${RESET}"
+    echo_green "Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL..."
     if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
-        echo "${RED}error: Download juicity client service file failed!${RESET}"
+        echo_red "error: Download juicity client service file failed!"
         exit 1
     fi
     mv /tmp/juicity-server /etc/init.d/juicity-server
@@ -374,31 +385,31 @@ download_service() {
     elif [ -f /sbin/openrc-run ]; then
         download_openrc_service
     else
-        echo "${YELLOW}warning: You are not using systemd or OpenRC, you need to manually configure the service file.${RESET}"
+        echo_yellow "warning: You are not using systemd or OpenRC, you need to manually configure the service file."
     fi
 }
 
 stop_juicity() {
     if command -v systemctl > /dev/null 2>&1; then
         if [ "$(systemctl is-active juicity-server)" = 'active' ]; then
-            echo "${GREEN}Stopping juicity server...${RESET}"
+            echo_green "Stopping juicity server..."
             systemctl stop juicity-server
             juicity_server_stopped=1
         fi
         if [ "$(systemctl is-active juicity-client)" = 'active' ]; then
-            echo "${GREEN}Stopping juicity client...${RESET}"
+            echo_green "Stopping juicity client..."
             systemctl stop juicity-client
             juicity_client_stopped=1
         fi
     fi
     if command -v rc-service > /dev/null 2>&1; then
         if [ -f /sbin/openrc-run ] && [ -n "$(pidof juicity-server)" ]; then
-            echo "${GREEN}Stopping juicity server...${RESET}"
+            echo_green "Stopping juicity server..."
             rc-service juicity-server stop
             juicity_server_stopped=1
         fi
         if [ -f /sbin/openrc-run ] && [ -n "$(pidof juicity-client)" ]; then
-            echo "${GREEN}Stopping juicity client...${RESET}"
+            echo_green "Stopping juicity client..."
             rc-service juicity-client stop
             juicity_client_stopped=1
         fi
@@ -424,7 +435,7 @@ install_juicity_rs() {
 
 start_juicity() {
     if [ "$juicity_server_stopped" = '1' ]; then
-        echo "${GREEN}Starting juicity server...${RESET}"
+        echo_green "Starting juicity server..."
         if [ -f /sbin/openrc-run ]; then
             rc-service juicity-server start
         elif command -v systemctl > /dev/null 2>&1; then
@@ -432,7 +443,7 @@ start_juicity() {
         fi
     fi
     if [ "$juicity_client_stopped" = '1' ]; then
-        echo "${GREEN}Starting juicity client...${RESET}"
+        echo_green "Starting juicity client..."
         if [ -f /sbin/openrc-run ]; then
             rc-service juicity-client start
         elif command -v systemctl > /dev/null 2>&1; then
@@ -442,27 +453,27 @@ start_juicity() {
 }
 
 notice_config_path() {
-    echo "${GREEN}-------------------------------------------------------------${RESET}"
-    echo "${GREEN}1. The configuration dir is in ${RESET}/usr/local/etc/juicity${GREEN},${RESET}"
-    echo "${GREEN}   and the server config file is server.json, the client ${RESET}"
-    echo "${GREEN}   config file is client.json.${RESET}"
-    echo "${GREEN}2. The example config files are server.json.example and ${RESET}"
-    echo "${GREEN}   client.json.example, don't use them directly but move${RESET}"
-    echo "${GREEN}   them to server.json and client.json.${RESET}"
-    echo "${GREEN}3. If you are using systemd or OpenRC, services will be ${RESET}"
-    echo "${GREEN}   installed, you can use systemctl or rc-service to manage${RESET}"
-    echo "${GREEN}   them. However, if you are not using systemd or OpenRC, no${RESET}"
-    echo "${GREEN}   services will be installed, you need to manage the${RESET}"
-    echo "${GREEN}   services by yourself.${RESET}"
-    echo "${GREEN}4. An SSL certificate is required to run the Juicity server,${RESET}"
-    echo "${GREEN}   you can apply for a certificate through lego, certbot or ${RESET}"
-    echo "${GREEN}   acme.sh. ${RESET}"
-    echo "${GREEN}-------------------------------------------------------------${RESET}"
-    echo "${GREEN}These acme clients might be helpful for you: ${RESET}"
+    echo_green "-------------------------------------------------------------"
+    echo_green "1. The configuration dir is in /usr/local/etc/juicity${GREEN},"
+    echo_green "   and the server config file is server.json, the client "
+    echo_green "   config file is client.json."
+    echo_green "2. The example config files are server.json.example and "
+    echo_green "   client.json.example, don't use them directly but move"
+    echo_green "   them to server.json and client.json."
+    echo_green "3. If you are using systemd or OpenRC, services will be "
+    echo_green "   installed, you can use systemctl or rc-service to manage"
+    echo_green "   them. However, if you are not using systemd or OpenRC, no"
+    echo_green "   services will be installed, you need to manage the"
+    echo_green "   services by yourself."
+    echo_green "4. An SSL certificate is required to run the Juicity server,"
+    echo_green "   you can apply for a certificate through lego, certbot or "
+    echo_green "   acme.sh. "
+    echo_green "-------------------------------------------------------------"
+    echo_green "These acme clients might be helpful for you: "
     echo "1. https://github.com/go-acme/lego"
     echo "2. https://certbot.eff.org/"
     echo "3. https://github.com/acmesh-official/acme.sh"
-    echo "${GREEN}-------------------------------------------------------------${RESET}"
+    echo_green "-------------------------------------------------------------"
 }
 
 main() {
@@ -476,7 +487,7 @@ main() {
     stop_juicity
     install_juicity_rs
     start_juicity
-    echo "${GREEN}Installed successfully!${RESET}"
+    echo_green "Installed successfully!"
     notice_installled_tool
     notice_config_path
 }
