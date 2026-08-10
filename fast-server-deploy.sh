@@ -24,10 +24,9 @@ show_notice () {
     echo_yellow_bold '------------------------------------------'
     echo_yellow_bold '------------------NOTICE------------------'
     echo_yellow_bold '------------------------------------------'
-    echo_yellow "This script will install certbot and nginx"
-    echo_yellow "for you, if you don't want those software,"
-    echo_yellow "exit this script and deploy juicity server"
-    echo_yellow "by yourself."
+    echo_yellow "This script supports two certificate methods:"
+    echo_yellow "  1. CertBot (requires nginx)"
+    echo_yellow "  2. Self-signed certificate (uses openssl)"
 }
 
 ## Check OS
@@ -56,39 +55,115 @@ check_os_release() {
 }
 
 ## Define the package needed
-## Actually, we only need certbot and nginx, but we
-## also install curl and unzip for convenience
 define_packages() {
-    case "$PACKAGE_MANAGER" in
-        apt)
-            PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
-            INSTALL_CMD="apt update && apt install -y $PACKAGES"
-            ;;
-        dnf)
-            PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
-            INSTALL_CMD="dnf install -y $PACKAGES"
-            ;;
-        yum)
-            PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
-            INSTALL_CMD="yum install -y $PACKAGES"
-            ;;
-        pacman)
-            PACKAGES="nginx certbot python-certbot-nginx curl unzip jq jo"
-            INSTALL_CMD="pacman -Sy --noconfirm $PACKAGES"
-            ;;
-        zypper)
-            PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
-            INSTALL_CMD="zypper --non-interactive install $PACKAGES"
-            ;;
-        apk)
-            PACKAGES="nginx certbot py3-certbot-nginx curl unzip jq jo"
-            INSTALL_CMD="apk add $PACKAGES"
-            ;;
-        *)
-            echo_red "Unsupported package manager: $PACKAGE_MANAGER"
-            exit 1
-            ;;
-    esac
+    if [ "$CERT_METHOD" = "certbot" ]; then
+        case "$PACKAGE_MANAGER" in
+            apt)
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                INSTALL_CMD="apt update && apt install -y $PACKAGES"
+                ;;
+            dnf)
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                INSTALL_CMD="dnf install -y $PACKAGES"
+                ;;
+            yum)
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                INSTALL_CMD="yum install -y $PACKAGES"
+                ;;
+            pacman)
+                PACKAGES="nginx certbot python-certbot-nginx curl unzip jq jo"
+                INSTALL_CMD="pacman -Sy --noconfirm $PACKAGES"
+                ;;
+            zypper)
+                PACKAGES="nginx certbot python3-certbot-nginx curl unzip jq jo"
+                INSTALL_CMD="zypper --non-interactive install $PACKAGES"
+                ;;
+            apk)
+                PACKAGES="nginx certbot py3-certbot-nginx curl unzip jq jo"
+                INSTALL_CMD="apk add $PACKAGES"
+                ;;
+            *)
+                echo_red "Unsupported package manager: $PACKAGE_MANAGER"
+                exit 1
+                ;;
+        esac
+    else
+        case "$PACKAGE_MANAGER" in
+            apt)
+                PACKAGES="openssl curl unzip jq jo"
+                INSTALL_CMD="apt update && apt install -y $PACKAGES"
+                ;;
+            dnf)
+                PACKAGES="openssl curl unzip jq jo"
+                INSTALL_CMD="dnf install -y $PACKAGES"
+                ;;
+            yum)
+                PACKAGES="openssl curl unzip jq jo"
+                INSTALL_CMD="yum install -y $PACKAGES"
+                ;;
+            pacman)
+                PACKAGES="openssl curl unzip jq jo"
+                INSTALL_CMD="pacman -Sy --noconfirm $PACKAGES"
+                ;;
+            zypper)
+                PACKAGES="openssl curl unzip jq jo"
+                INSTALL_CMD="zypper --non-interactive install $PACKAGES"
+                ;;
+            apk)
+                PACKAGES="openssl curl unzip jq jo"
+                INSTALL_CMD="apk add $PACKAGES"
+                ;;
+            *)
+                echo_red "Unsupported package manager: $PACKAGE_MANAGER"
+                exit 1
+                ;;
+        esac
+    fi
+}
+
+## Ask certificate method
+ask_cert_method() {
+    echo_yellow "Choose certificate method:"
+    echo_yellow "  1) CertBot (official certificate, requires nginx)"
+    echo_yellow "  2) Self-signed certificate (uses openssl)"
+    while true; do
+        read -r cert_choice
+        case "$cert_choice" in
+            1)
+                CERT_METHOD="certbot"
+                break
+                ;;
+            2)
+                CERT_METHOD="selfsigned"
+                break
+                ;;
+            *)
+                echo_yellow "Invalid choice. Enter 1 or 2:"
+                ;;
+        esac
+    done
+
+    if [ "$CERT_METHOD" = "selfsigned" ]; then
+        echo_red_bold "=========================================="
+        echo_red_bold "WARNING: When using a self-signed certificate,"
+        echo_red_bold "you MUST configure your client with the"
+        echo_red_bold "certificate's SHA256 fingerprint!"
+        echo_red_bold "=========================================="
+        echo_yellow "The SHA256 fingerprint will be displayed"
+        echo_yellow "after certificate generation."
+        echo_yellow "Continue with self-signed certificate? (y/n)"
+        while true; do
+            read -r confirm
+            case "$confirm" in
+                y|Y) break ;;
+                *)
+                    echo_yellow "Switching to CertBot method."
+                    CERT_METHOD="certbot"
+                    break
+                    ;;
+            esac
+        done
+    fi
 }
 
 ## Ask domain and email
@@ -146,7 +221,7 @@ EOF
     echo_green "Nginx config created at $NGINX_CONF_DIR/$DOMAIN.conf"
 }
 
-## Ask juicity config path and create config
+## Ask juicity config path and collect values
 ask_juicity_config_path() {
     DEFAULT_CONFIG_PATH="/usr/local/etc/juicity/server.json"
 
@@ -201,14 +276,27 @@ ask_juicity_config_path() {
     # Collect config values
     echo_yellow "Enter listen address (e.g. 0.0.0.0:443):"
     read -r LISTEN_ADDR
-    echo_yellow "Enter certificate file path:"
-    read -r CERT_PATH
-    echo_yellow "Enter key file path:"
-    read -r KEY_PATH
-    echo_yellow "Enter UUID:"
+
+    if [ "$CERT_METHOD" = "selfsigned" ]; then
+        echo_yellow "Certificate will be generated. Enter UUID:"
+    else
+        echo_yellow "Enter certificate file path:"
+        read -r CERT_PATH
+        echo_yellow "Enter key file path:"
+        read -r KEY_PATH
+        echo_yellow "Enter UUID:"
+    fi
     read -r UUID
     echo_yellow "Enter password:"
     read -r PASSWORD
+}
+
+## Create juicity config file
+create_juicity_config() {
+    if [ "$CERT_METHOD" = "selfsigned" ]; then
+        CERT_PATH="$SELF_SIGNED_CERT"
+        KEY_PATH="$SELF_SIGNED_KEY"
+    fi
 
     # Create JSON config using jo
     jo -p \
@@ -253,6 +341,35 @@ obtain_ssl_cert() {
     echo_green "SSL certificate obtained successfully."
 }
 
+## Generate self-signed certificate using openssl
+generate_self_signed_cert() {
+    SSL_DIR="/etc/juicity/ssl"
+    mkdir -p "$SSL_DIR"
+
+    SELF_SIGNED_KEY="$SSL_DIR/$DOMAIN.key"
+    SELF_SIGNED_CERT="$SSL_DIR/$DOMAIN.crt"
+
+    echo_green "Generating self-signed certificate for $DOMAIN..."
+    if ! openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "$SELF_SIGNED_KEY" \
+        -out "$SELF_SIGNED_CERT" \
+        -subj "/CN=$DOMAIN"; then
+        echo_red "error: Failed to generate self-signed certificate!"
+        exit 1
+    fi
+
+    SELF_SIGNED_SHA256=$(openssl x509 -in "$SELF_SIGNED_CERT" -noout -fingerprint -sha256 | sed 's/://g' | cut -d= -f2)
+
+    echo_green "Self-signed certificate generated successfully."
+    echo_green_bold "Certificate: $SELF_SIGNED_CERT"
+    echo_green_bold "Private key: $SELF_SIGNED_KEY"
+    echo_red_bold "=========================================="
+    echo_red_bold "SHA256 Fingerprint:"
+    echo_red_bold "$SELF_SIGNED_SHA256"
+    echo_red_bold "=========================================="
+    echo_yellow "Use this SHA256 fingerprint in your client configuration."
+}
+
 ## Start and enable service
 start_service() {
     if command -v systemctl >/dev/null 2>&1; then
@@ -286,6 +403,7 @@ main() {
     show_notice
 
     # Step 1: Collect user input
+    ask_cert_method
     ask_domain_email
     ask_juicity_config_path
 
@@ -294,11 +412,16 @@ main() {
     check_os_release
     define_packages
     install_packages
-    set_nginx_config
 
-    # Step 3: Obtain SSL and start services
-    obtain_ssl_cert
-    start_service
+    if [ "$CERT_METHOD" = "certbot" ]; then
+        set_nginx_config
+        obtain_ssl_cert
+        create_juicity_config
+        start_service
+    else
+        generate_self_signed_cert
+        create_juicity_config
+    fi
 
     echo_green_bold "Deployment complete!"
 }
