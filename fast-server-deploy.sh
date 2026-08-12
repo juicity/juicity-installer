@@ -380,6 +380,25 @@ generate_self_signed_cert() {
     SELF_SIGNED_SHA256=$(openssl x509 -in "$SELF_SIGNED_CERT" -noout -fingerprint -sha256 | sed 's/://g' | cut -d= -f2)
 
     echo_green "Self-signed certificate generated successfully."
+
+    # Ensure the certificate and private key are readable by the 'nobody' user,
+    # since juicity-server typically runs as nobody (systemd/OpenRC).
+    # openssl creates the private key with 0600 permissions by default,
+    # which would prevent the nobody user from reading it.
+    chmod 755 "$SSL_DIR"
+    chmod 644 "$SELF_SIGNED_CERT"
+    if command -v chown >/dev/null 2>&1; then
+        if chown nobody "$SELF_SIGNED_CERT" "$SELF_SIGNED_KEY" 2>/dev/null; then
+            echo_green "Ownership of certificate and key changed to nobody."
+        else
+            echo_yellow "warning: Failed to chown to nobody, falling back to chmod 644 on the private key."
+            chmod 644 "$SELF_SIGNED_KEY"
+        fi
+    else
+        echo_yellow "warning: chown not available, falling back to chmod 644 on the private key."
+        chmod 644 "$SELF_SIGNED_KEY"
+    fi
+
     echo_green_bold "Certificate: $SELF_SIGNED_CERT"
     echo_green_bold "Private key: $SELF_SIGNED_KEY"
     echo_red_bold "=========================================="

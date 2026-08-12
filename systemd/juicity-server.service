@@ -5,8 +5,10 @@ After=network.target nss-lookup.target
 
 [Service]
 Type=simple
-User=root
-ExecStart=/usr/local/bin/juicity-server run -c /usr/local/etc/juicity/server.json
+User=nobody
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
+ExecStart=/usr/local/bin/juicity-server run -c /usr/local/etc/juicity/server.json --disable-timestamp
 Restart=on-failure
 LimitNPROC=512
 LimitNOFILE=infinity

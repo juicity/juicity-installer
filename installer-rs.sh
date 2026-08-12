@@ -341,42 +341,58 @@ download_juicity_rs() {
 download_systemd_service() (
     JUICITY_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity-installer/master/systemd/juicity-server.service"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server.service"
-    echo_green "Downloading juicity server service file from $JUICITY_SERVICE_URL..."
-    if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
-        echo_red "error: Download juicity service file failed!"
-        exit 1
+    if [ -f /etc/systemd/system/juicity-server.service ] && [ "$FORCE_INSTALL" != '1' ]; then
+        echo_yellow "warning: /etc/systemd/system/juicity-server.service already exists, skipping replacement (use --force to overwrite)."
+    else
+        echo_green "Downloading juicity server service file from $JUICITY_SERVICE_URL..."
+        if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
+            echo_red "error: Download juicity service file failed!"
+            exit 1
+        fi
+        mv /tmp/juicity-server.service /etc/systemd/system/juicity-server.service
     fi
     JUICITY_CLIENT_SERVICE_URL="https://raw.githubusercontent.com/juicity/juicity-installer/master/systemd/juicity-client.service"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client.service"
-    echo_green "Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL..."
-    if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
-        echo_red "error: Download juicity client service file failed!"
-        exit 1
+    if [ -f /etc/systemd/system/juicity-client.service ] && [ "$FORCE_INSTALL" != '1' ]; then
+        echo_yellow "warning: /etc/systemd/system/juicity-client.service already exists, skipping replacement (use --force to overwrite)."
+    else
+        echo_green "Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL..."
+        if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
+            echo_red "error: Download juicity client service file failed!"
+            exit 1
+        fi
+        mv /tmp/juicity-client.service /etc/systemd/system/juicity-client.service
     fi
-    mv /tmp/juicity-server.service /etc/systemd/system/juicity-server.service
-    mv /tmp/juicity-client.service /etc/systemd/system/juicity-client.service
     systemctl daemon-reload
 )
 
 download_openrc_service() (
     JUICITY_SERVICE_URL="https://github.com/juicity/juicity-installer/raw/master/OpenRC/juicity-server"
     JUICITY_SERVICE_TMP_FILE="/tmp/juicity-server"
-    echo_green "Downloading juicity server service file from $JUICITY_SERVICE_URL..."
-    if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
-        echo_red "error: Download juicity service file failed!"
-        exit 1
+    if [ -f /etc/init.d/juicity-server ] && [ "$FORCE_INSTALL" != '1' ]; then
+        echo_yellow "warning: /etc/init.d/juicity-server already exists, skipping replacement (use --force to overwrite)."
+    else
+        echo_green "Downloading juicity server service file from $JUICITY_SERVICE_URL..."
+        if ! curl -# -L -o "$JUICITY_SERVICE_TMP_FILE" "$JUICITY_SERVICE_URL"; then
+            echo_red "error: Download juicity service file failed!"
+            exit 1
+        fi
+        mv /tmp/juicity-server /etc/init.d/juicity-server
+        chmod +x /etc/init.d/juicity-server
     fi
     JUICITY_CLIENT_SERVICE_URL="https://github.com/juicity/juicity-installer/raw/master/OpenRC/juicity-client"
     JUICITY_CLIENT_SERVICE_TMP_FILE="/tmp/juicity-client"
-    echo_green "Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL..."
-    if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
-        echo_red "error: Download juicity client service file failed!"
-        exit 1
+    if [ -f /etc/init.d/juicity-client ] && [ "$FORCE_INSTALL" != '1' ]; then
+        echo_yellow "warning: /etc/init.d/juicity-client already exists, skipping replacement (use --force to overwrite)."
+    else
+        echo_green "Downloading juicity client service file from $JUICITY_CLIENT_SERVICE_URL..."
+        if ! curl -# -L -o "$JUICITY_CLIENT_SERVICE_TMP_FILE" "$JUICITY_CLIENT_SERVICE_URL"; then
+            echo_red "error: Download juicity client service file failed!"
+            exit 1
+        fi
+        mv /tmp/juicity-client /etc/init.d/juicity-client
+        chmod +x /etc/init.d/juicity-client
     fi
-    mv /tmp/juicity-server /etc/init.d/juicity-server
-    mv /tmp/juicity-client /etc/init.d/juicity-client
-    chmod +x /etc/init.d/juicity-server
-    chmod +x /etc/init.d/juicity-client
 )
 
 download_service() {
