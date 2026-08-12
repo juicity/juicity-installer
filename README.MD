@@ -70,7 +70,7 @@ We run all our services with user `nobody`, so we need to make sure that the ser
 
 ```sh
 sudo setfacl -R -m u:nobody:rX /etc/letsencrypt/{live,archive}
-sudo setfacl -m u:nobody:rX /etc/letsencrypt"
+sudo setfacl -m u:nobody:rX /etc/letsencrypt
 ```
 
 Then add a cerbot hook to make sure that the ACL is set after the certificate is renewed:
