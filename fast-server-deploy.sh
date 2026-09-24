@@ -214,6 +214,7 @@ set_nginx_config() {
     cat > "$NGINX_CONF_DIR/$DOMAIN.conf" <<EOF
 server {
     listen 80;
+    listen [::]:80;
     server_name $DOMAIN;
 
     location / {
